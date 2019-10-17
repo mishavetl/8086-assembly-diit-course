@@ -1,0 +1,74 @@
+Turbo Assembler	 Version 2.51	     09/15/19 20:40:20	    Page 1
+PR1.ASM
+
+
+
+      1				     ; файл	PR1.asm
+      2
+      3				     ; сегмент стека
+      4	0000			     sseg    segment stack   'stack'
+      5	0000  80*(??)			     db		     128 dup(?)
+      6	0080			     sseg    ends
+      7
+      8				     ; сегмент данных
+      9	0000			     dseg    segment 'data'
+     10				     ; текст
+     11	0000  53 74 72 69 6B 65	20+	     db	     "Strike while the iron is hot."
+     12	      77 68 69 6C 65 20	74+
+     13	      68 65 20 69 72 6F	6E+
+     14	      20 69 73 20 68 6F	74+
+     15	      2E
+     16				     ; байт
+     17	001D  99		     dbA     db	     -103
+     18				     ; слово
+     19	001E  00EA		     dwA     dw	     234
+     20	0020  89FD		     dwB     dw	     -30211
+     21				     ; подвійне	слово
+     22	0022  000089FD		     ddA     dd	     35325
+     23	0026  000637F5		     ddB     dd	     407541
+     24	002A  FFFD0BE1		     ddC     dd	     -193567
+     25	002E  C3B7A396		     dwC     dd	     -367.278
+     26	0032			     dseg    ends
+     27
+     28				     ; сегмент команд
+     29	0000			     cseg    segment 'code'
+     30				     assume  cs:cseg, ds:dseg, ss:sseg
+     31				     ; мітка початку програми з ім’ям start
+     32	0000  B8 0000s		     start:  mov     ax, dseg
+     33	0003  8E D8			     mov     ds, ax
+     34				     ; повернення керування ОС
+     35	0005  B4 4C			     mov     ah, 4Ch
+     36	0007  CD 21			     int     21h
+     37	0009			     cseg    ends
+     38					     end     start   ; закінчення програми
+Turbo Assembler	 Version 2.51	     09/15/19 20:40:20	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "09/15/19"
+??FILENAME			  Text	 "PR1	  "
+??TIME				  Text	 "20:40:20"
+??VERSION			  Number 0205
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CSEG
+@FILENAME			  Text	 PR1
+@WORDSIZE			  Text	 2
+DBA				  Byte	 DSEG:001D
+DDA				  Dword	 DSEG:0022
+DDB				  Dword	 DSEG:0026
+DDC				  Dword	 DSEG:002A
+DWA				  Word	 DSEG:001E
+DWB				  Word	 DSEG:0020
+DWC				  Dword	 DSEG:002E
+START				  Near	 CSEG:0000
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CSEG				  16  0009 Para	  none	  CODE
+DSEG				  16  0032 Para	  none	  DATA
+SSEG				  16  0080 Para	  Stack	  STACK
+

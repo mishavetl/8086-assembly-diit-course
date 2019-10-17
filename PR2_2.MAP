@@ -1,0 +1,22 @@
+
+ Start  Stop   Length Name               Class
+
+ 00000H 0007FH 00080H SSEG               STACK
+ 00080H 000A3H 00024H DSEG               DATA
+ 000B0H 00102H 00053H CSEG               CODE
+
+
+Detailed map of segments
+
+ 0000:0000 0080 C=STACK  S=SSEG           G=(none)  M=PR2_2.ASM  ACBP=74
+ 0008:0000 0024 C=DATA   S=DSEG           G=(none)  M=PR2_2.ASM  ACBP=60
+ 000B:0000 0053 C=CODE   S=CSEG           G=(none)  M=PR2_2.ASM  ACBP=60
+
+  Address         Publics by Name
+
+
+  Address         Publics by Value
+
+
+Program entry point at 000B:0000
+

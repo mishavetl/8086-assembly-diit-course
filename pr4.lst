@@ -1,0 +1,301 @@
+Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 1
+pr4.ASM
+
+
+
+      1	0000			     sseg    segment stack 'stack'
+      2	0000  80*(??)			 db  128 dup(?)
+      3	0080			     sseg    ends
+      4
+      5	0000			     dseg    segment 'data'
+      6
+      7
+      8				     ; Input data
+      9	0000  ????		     x		 dw ?
+     10	0002  ????		     y		 dw ?
+     11
+     12				     ; % Private data %
+     13	0004  54 68 65 20 67 69	76+  yes_msg	 db 'The given point is	located	in the first or	third quarter',	0Dh, 0Ah, '$'
+     14	      65 6E 20 70 6F 69	6E+
+     15	      74 20 69 73 20 6C	6F+
+     16	      63 61 74 65 64 20	69+
+     17	      6E 20 74 68 65 20	66+
+     18	      69 72 73 74 20 6F	72+
+     19	      20 74 68 69 72 64	20+
+     20	      71 75 61 72 74 65	72+
+     21	      0D 0A 24
+     22	003F  54 68 65 20 67 69	76+  no_msg	 db 'The given point isn', 27h ,'t located in the first	or third quarter', 0Dh,	0Ah,+
+     23	      65 6E 20 70 6F 69	6E+  '$'
+     24	      74 20 69 73 6E 27	74+
+     25	      20 6C 6F 63 61 74	65+
+     26	      64 20 69 6E 20 74	68+
+     27	      65 20 66 69 72 73	74+
+     28	      20 6F 72 20 74 68	69+
+     29	      72 64 20 71 75 61	72+
+     30	      74 65 72 0D 0A 24
+     31	007D  78 20 3D 20 24	     x_msg	 db 'x = $'
+     32	0082  79 20 3D 20 24	     y_msg	 db 'y = $'
+     33	0087  000A		     base	 dw 10
+     34	0089  FFFF		     minus	 dw -1
+     35	008B  10		     buffer_size db 16
+     36	008C  00		     buffer_read db 0
+     37	008D  10*(24)		     buffer	 db 16 dup('$')
+     38
+     39	009D			     dseg    ends
+     40
+     41	0000			     cseg    segment 'code'
+     42					 assume	     cs:cseg, ds:dseg, ss:sseg
+     43
+     44				     ; =========================================================
+     45				     ; Output text procedure
+     46				     ; =========================================================
+     47	0000			     output_text:
+     48	0000  B4 09			 mov ah, 09h
+     49	0002  CD 21			     int     21h
+     50	0004  C3			 ret
+     51
+     52				     ; =========================================================
+     53				     ; Output character	procedure
+     54				     ; =========================================================
+     55	0005			     output_character:
+     56	0005  B4 02			 mov ah, 02h
+     57	0007  CD 21			 int 21h
+Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 2
+pr4.ASM
+
+
+
+     58	0009  C3			 ret
+     59
+     60				     ; =========================================================
+     61				     ; Output number procedure
+     62				     ; =========================================================
+     63	000A			     output_number:
+     64	000A  3D 0000			 cmp ax, 0
+     65	000D  7D 0B			 jge output_number_unsigned
+     66	000F  F7 2E 0089r		 imul minus
+     67	0013  93			 xchg ax, bx
+     68	0014  B2 2D			 mov dl, '-'
+     69	0016  E8 FFEC			 call output_character
+     70	0019  93			 xchg ax, bx
+     71	001A			     output_number_unsigned:
+     72	001A  BB 0000			 mov bx, 0
+     73	001D			     output_number_loop:
+     74	001D  3D 0000			 cmp ax, 0
+     75	0020  99			 cwd
+     76	0021  F7 3E 0087r		 idiv base
+     77	0025  80 C2 30			 add dl, '0'
+     78	0028  52			 push dx
+     79	0029  43			 inc bx
+     80	002A  3D 0000			 cmp ax, 0
+     81	002D  E0 EE			 loopne	output_number_loop
+     82	002F  8B CB			 mov cx, bx
+     83	0031			     output_stack:
+     84	0031  5A			 pop dx
+     85	0032  E8 FFD0			 call output_character
+     86	0035  E2 FA			 loop output_stack
+     87	0037  C3			 ret
+     88
+     89				     ; =========================================================
+     90				     ; Input character procedure
+     91				     ; =========================================================
+     92	0038			     input_character:
+     93	0038  B4 08			 mov ah, 08h
+     94	003A  CD 21			     int     21h
+     95	003C  C3			 ret
+     96
+     97				     ; =========================================================
+     98				     ; Buffered	input procedure
+     99				     ; =========================================================
+    100	003D			     input_buffer:
+    101	003D  B4 0A			 mov ah, 0Ah
+    102	003F  CD 21			     int     21h
+    103	0041  C3			 ret
+    104
+    105				     ; =========================================================
+    106				     ; Input number function
+    107				     ; =========================================================
+    108	0042			     input_number:
+    109	0042  BA 008Br			 lea dx, buffer_size
+    110	0045  E8 FFF5			 call input_buffer
+    111	0048  BF 008Dr			 lea di, buffer
+    112	004B  B8 0000			 mov ax, 0
+    113	004E  BB 0000			 mov bx, 0
+    114	0051  B9 0000			 mov cx, 0
+Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 3
+pr4.ASM
+
+
+
+    115	0054  8A 0E 008Cr		 mov cl, buffer_read
+    116	0058  80 3D 2D			 cmp byte ptr [di], '-'
+    117	005B  75 0A			 jne input_number_positive
+    118	005D  FF 36 0089r		 push minus
+    119	0061  47			 inc di
+    120	0062  FE C9			 dec cl
+    121	0064  EB 0B 90			 jmp input_number_loop
+    122	0067			     input_number_positive:
+    123	0067  50 55 8B EC C7 46	02+	 push 1
+    124	      0001 5D
+    125	0071			     input_number_loop:
+    126	0071  F7 26 0087r		 mul base
+    127	0075  8A 1D			 mov bl, byte ptr [di]
+    128	0077  80 EB 30			 sub bl, '0'
+    129	007A  03 C3			 add ax, bx
+    130	007C  47			 inc di
+    131	007D  E2 F2			 loop input_number_loop
+    132	007F  99			 cwd
+    133	0080  5B			 pop bx
+    134	0081  F7 EB			 imul bx
+    135	0083  C3			 ret
+    136
+    137				     ; =========================================================
+    138				     ; Input data procedure
+    139				     ; =========================================================
+    140	0084			     input_data:
+    141	0084  BA 007Dr			 lea dx, x_msg
+    142	0087  E8 FF76			 call output_text
+    143
+    144	008A  BA 008Br			 lea dx, buffer_size
+    145	008D  E8 FFB2			 call input_number
+    146
+    147	0090  A3 0000r			 mov x,	ax
+    148
+    149	0093  B2 0A			 mov dl, 0Ah
+    150	0095  E8 FF6D			 call output_character
+    151
+    152	0098  BA 0082r			 lea dx, y_msg
+    153	009B  E8 FF62			 call output_text
+    154
+    155	009E  BA 008Br			 lea dx, buffer_size
+    156	00A1  E8 FF9E			 call input_number
+    157
+    158	00A4  A3 0002r			 mov y,	ax
+    159
+    160	00A7  B2 0A			 mov dl, 0Ah
+    161	00A9  E8 FF59			 call output_character
+    162
+    163	00AC  A1 0000r			 mov ax, x
+    164	00AF  8B 1E 0002r		 mov bx, y
+    165	00B3  C3			 ret
+    166
+    167				     ; ---------------------------------------------------------
+    168				     ; Input point
+    169				     ; ---------------------------------------------------------
+    170	00B4			     start:
+    171	00B4  E8 0043			 call init
+Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 4
+pr4.ASM
+
+
+
+    172
+    173	00B7  E8 FFCA			 call input_data
+    174
+    175	00BA  B9 0000			 mov cx, 0
+    176
+    177	00BD  3D 0000			 cmp ax, 0
+    178	00C0  74 2A			 je no
+    179	00C2  7F 03			 jg right
+    180	00C4  83 C9 01			 or cx,	01b
+    181	00C7			     right:
+    182	00C7  90			 nop
+    183
+    184	00C8  83 FB 00			 cmp bx, 0
+    185	00CB  74 1F			 je no
+    186	00CD  7F 03			 jg up
+    187	00CF  83 C9 02			 or cx,	10b
+    188	00D2			     up:
+    189	00D2  90			 nop
+    190
+    191	00D3  83 F9 00			 cmp cx, 00b
+    192	00D6  74 08			 je yes
+    193	00D8  83 F9 03			 cmp cx, 11b
+    194	00DB  74 03			 je yes
+    195
+    196	00DD  EB 0D 90			 jmp no
+    197
+    198	00E0			     yes:
+    199	00E0  83 F9 00			 cmp cx, 0
+    200	00E3  BA 0004r			 lea dx, yes_msg
+    201	00E6  E8 FF17			 call output_text
+    202	00E9  EB 07 90			 jmp _exit
+    203
+    204	00EC			     no:
+    205	00EC  BA 003Fr			 lea dx, no_msg
+    206	00EF  E8 FF0E			 call output_text
+    207
+    208	00F2			     _exit:
+    209	00F2  B2 0A			 mov dl, 0Ah
+    210	00F4  E8 FF0E			 call output_character
+    211	00F7  E8 0006			 call exit
+    212
+    213				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    214				     ; Initialization and exit functions
+    215				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    216	00FA			     init:
+    217	00FA  B8 0000s			 mov ax, dseg
+    218	00FD  8E D8			 mov ds, ax
+    219	00FF  C3			 ret
+    220
+    221	0100			     exit:
+    222	0100  B4 4C			 mov ah, 4Ch
+    223	0102  CD 21			 int 21h
+    224	0104  C3			 ret
+    225
+    226	0105			     cseg ends
+    227					 end start
+Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "10/17/19"
+??FILENAME			  Text	 "pr4	  "
+??TIME				  Text	 "11:09:26"
+??VERSION			  Number 0205
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CSEG
+@FILENAME			  Text	 PR4
+@WORDSIZE			  Text	 2
+BASE				  Word	 DSEG:0087
+BUFFER				  Byte	 DSEG:008D
+BUFFER_READ			  Byte	 DSEG:008C
+BUFFER_SIZE			  Byte	 DSEG:008B
+EXIT				  Near	 CSEG:0100
+INIT				  Near	 CSEG:00FA
+INPUT_BUFFER			  Near	 CSEG:003D
+INPUT_CHARACTER			  Near	 CSEG:0038
+INPUT_DATA			  Near	 CSEG:0084
+INPUT_NUMBER			  Near	 CSEG:0042
+INPUT_NUMBER_LOOP		  Near	 CSEG:0071
+INPUT_NUMBER_POSITIVE		  Near	 CSEG:0067
+MINUS				  Word	 DSEG:0089
+NO				  Near	 CSEG:00EC
+NO_MSG				  Byte	 DSEG:003F
+OUTPUT_CHARACTER		  Near	 CSEG:0005
+OUTPUT_NUMBER			  Near	 CSEG:000A
+OUTPUT_NUMBER_LOOP		  Near	 CSEG:001D
+OUTPUT_NUMBER_UNSIGNED		  Near	 CSEG:001A
+OUTPUT_STACK			  Near	 CSEG:0031
+OUTPUT_TEXT			  Near	 CSEG:0000
+RIGHT				  Near	 CSEG:00C7
+START				  Near	 CSEG:00B4
+UP				  Near	 CSEG:00D2
+X				  Word	 DSEG:0000
+X_MSG				  Byte	 DSEG:007D
+Y				  Word	 DSEG:0002
+YES				  Near	 CSEG:00E0
+YES_MSG				  Byte	 DSEG:0004
+Y_MSG				  Byte	 DSEG:0082
+_EXIT				  Near	 CSEG:00F2
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CSEG				  16  0105 Para	  none	  CODE
+DSEG				  16  009D Para	  none	  DATA
+SSEG				  16  0080 Para	  Stack	  STACK
+

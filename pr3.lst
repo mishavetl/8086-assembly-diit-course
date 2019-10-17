@@ -1,0 +1,99 @@
+Turbo Assembler	 Version 2.51	     10/14/19 00:10:58	    Page 1
+pr3.ASM
+
+
+
+      1	0000			     data segment para public 'data'
+      2
+      3	0000  FF56		     A	 dw -170
+      4	0002  2D		     B	 db 45
+      5	0003  1388		     C	 dw 5000
+      6	0005  02		     D	 db 2
+      7	0006  ????		     RES dw ?
+      8
+      9	0008			     data ends
+     10
+     11	0000			     stk segment stack
+     12	0000  0100*(??)			 db 256	dup (?)
+     13	0100			     stk ends
+     14
+     15	0000			     code segment para public 'code'
+     16					 assume	cs:code, ds:data, ss:stk
+     17
+     18	0000			     start:
+     19	0000  B8 0000s			 mov ax, data
+     20	0003  8E D8			 mov ds, ax
+     21
+     22	0005  8B 1E 0000r		 mov bx, A ; a
+     23	0009  A0 0005r			 mov al, D
+     24	000C  98			 cbw
+     25	000D  03 D8			 add bx, ax ; a	+ d
+     26
+     27	000F  A1 0003r			 mov ax, C ; c
+     28	0012  F7 FB			 idiv bx ; c / (a + d)
+     29
+     30	0014  93			 xchg ax, bx
+     31
+     32	0015  A0 0002r			 mov al, B
+     33	0018  98			 cbw
+     34	0019  2B C3			 sub ax, bx ; b	- c / (a + d)
+     35
+     36	001B  93			 xchg ax, bx
+     37
+     38	001C  A1 0000r			 mov ax, A
+     39	001F  99			 cwd
+     40	0020  91			 xchg ax, cx
+     41	0021  A0 0005r			 mov al, D
+     42	0024  98			 cbw
+     43	0025  91			 xchg ax, cx
+     44	0026  F7 F9			 idiv cx ; a / d
+     45
+     46	0028  91			 xchg ax, cx
+     47	0029  03 C1			 add ax, cx ; d	+ a / d
+     48
+     49	002B  99			 cwd
+     50	002C  F7 FB			 idiv bx ; (d +	a / d) / (b - c	/ (a + d))
+     51
+     52	002E  05 000A			 add ax, 10 ; (d + a / d) / (b - c / (a	+ d)) +	10
+     53
+     54	0031  A3 0006r			 mov RES, ax
+     55
+     56	0034  B4 4C			 mov ah, 4Ch
+     57	0036  CD 21			 int 21h
+Turbo Assembler	 Version 2.51	     10/14/19 00:10:58	    Page 2
+pr3.ASM
+
+
+
+     58
+     59	0038			     code ends
+     60				       end start
+Turbo Assembler	 Version 2.51	     10/14/19 00:10:58	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "10/14/19"
+??FILENAME			  Text	 "pr3	  "
+??TIME				  Text	 "00:10:58"
+??VERSION			  Number 0205
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CODE
+@FILENAME			  Text	 PR3
+@WORDSIZE			  Text	 2
+A				  Word	 DATA:0000
+B				  Byte	 DATA:0002
+C				  Word	 DATA:0003
+D				  Byte	 DATA:0005
+RES				  Word	 DATA:0006
+START				  Near	 CODE:0000
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CODE				  16  0038 Para	  Public  CODE
+DATA				  16  0008 Para	  Public  DATA
+STK				  16  0100 Para	  Stack
+

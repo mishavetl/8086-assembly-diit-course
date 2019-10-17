@@ -1,0 +1,104 @@
+Turbo Assembler	 Version 2.51	     09/29/19 20:08:10	    Page 1
+PR2.ASM
+
+
+
+      1				     ; файл	PR2.asm
+      2
+      3	0000			     sseg    segment stack   'stack'
+      4	0000  80*(??)			     db	     128 dup(?)
+      5	0080			     sseg    ends
+      6
+      7	0000			     dseg    segment 'data'
+      8
+      9				     ; input
+     10	0000  52 6F 6D 65 20 77	61+  text	 db "Rome wasn't built in a day."
+     11	      73 6E 27 74 20 62	75+
+     12	      69 6C 74 20 69 6E	20+
+     13	      61 20 64 61 79 2E
+     14	001B  75F8		     numbers	 dw 30200
+     15	001D  FFFB7215				 dd -298475
+     16	0021  C8				 db 200
+     17
+     18	0022			     dseg    ends
+     19
+     20	0000			     cseg    segment 'code'
+     21				     assume  cs:cseg, ds:dseg, ss:sseg
+     22
+     23
+     24	0000			     start:
+     25	0000  B8 0000s			 mov ax, dseg
+     26	0003  8E D8			     mov     ds, ax
+     27
+     28	0005			     transform_first_word:
+     29	0005  A0 0000r			 mov al, text
+     30	0008  86 06 0001r		 xchg al, text + 1
+     31	000C  86 06 0000r		 xchg text, al
+     32
+     33	0010			     transform_second_word:
+     34	0010  A0 0005r			 mov al, text +	5
+     35	0013  86 06 0006r		 xchg al, text + 6
+     36	0017  86 06 0005r		 xchg text + 5,	al
+     37
+     38	001B			     write_second_number_address:
+     39	001B  B8 001Dr			 lea ax, numbers + 2
+     40
+     41	001E			     exchange_numbers_w_1:
+     42	001E  A1 001Br			 mov ax, numbers
+     43	0021  8A DC			 mov bl, ah
+     44	0023  8A F8			 mov bh, al
+     45	0025  89 1E 001Br		 mov numbers, bx
+     46
+     47	0029			     exchange_numbers_w_2:
+     48	0029  A1 001Br			 mov ax, numbers
+     49	002C  86 E0			 xchg ah, al
+     50	002E  A3 001Br			 mov numbers, ax
+     51
+     52	0031			     exchange_numbers_d:
+     53	0031  A1 001Dr			 mov ax, numbers + 2
+     54	0034  87 06 001Er		 xchg ax, numbers + 3
+     55	0038  A3 001Dr			 mov numbers + 2, ax
+     56
+     57	003B  B4 4C			     mov     ah, 4Ch
+Turbo Assembler	 Version 2.51	     09/29/19 20:08:10	    Page 2
+PR2.ASM
+
+
+
+     58	003D  CD 21			     int     21h
+     59
+     60	003F			     cseg    ends
+     61
+     62				     end     start
+Turbo Assembler	 Version 2.51	     09/29/19 20:08:10	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "09/29/19"
+??FILENAME			  Text	 "PR2	  "
+??TIME				  Text	 "20:08:10"
+??VERSION			  Number 0205
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CSEG
+@FILENAME			  Text	 PR2
+@WORDSIZE			  Text	 2
+EXCHANGE_NUMBERS_D		  Near	 CSEG:0031
+EXCHANGE_NUMBERS_W_1		  Near	 CSEG:001E
+EXCHANGE_NUMBERS_W_2		  Near	 CSEG:0029
+NUMBERS				  Word	 DSEG:001B
+START				  Near	 CSEG:0000
+TEXT				  Byte	 DSEG:0000
+TRANSFORM_FIRST_WORD		  Near	 CSEG:0005
+TRANSFORM_SECOND_WORD		  Near	 CSEG:0010
+WRITE_SECOND_NUMBER_ADDRESS	  Near	 CSEG:001B
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CSEG				  16  003F Para	  none	  CODE
+DSEG				  16  0022 Para	  none	  DATA
+SSEG				  16  0080 Para	  Stack	  STACK
+

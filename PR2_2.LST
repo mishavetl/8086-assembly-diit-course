@@ -1,0 +1,105 @@
+Turbo Assembler	 Version 2.51	     09/30/19 11:49:19	    Page 1
+PR2_2.ASM
+
+
+
+      1				     ; файл	PR2.asm
+      2
+      3	0000			     sseg    segment stack   'stack'
+      4	0000  80*(??)			     db	     128 dup(?)
+      5	0080			     sseg    ends
+      6
+      7	0000			     dseg    segment 'data'
+      8
+      9	0000  53 74 72 69 6B 65	20+  text    db	'Strike	while the iron is hot.'
+     10	      77 68 69 6C 65 20	74+
+     11	      68 65 20 69 72 6F	6E+
+     12	      20 69 73 20 68 6F	74+
+     13	      2E
+     14	001D  99		     numbers db	-103
+     15	001E  000637F5			     dd	407541
+     16	0022  89FD			     dw	35325
+     17
+     18	0024			     dseg    ends
+     19
+     20	0000			     cseg    segment 'code'
+     21				     assume  cs:cseg, ds:dseg, ss:sseg
+     22
+     23	0000			     start:
+     24	0000  B8 0000s			 mov ax, dseg
+     25	0003  8E D8			     mov     ds, ax
+     26
+     27	0005			     transform_text:
+     28	0005  A0 000Br			 mov al, text +	11
+     29	0008  FF 36 0009r FF 36	  +	 push dword ptr	[text +	7]
+     30	      0007r
+     31	0010  8F 06 0008r 8F 06	  +	 pop dword ptr [text + 8]
+     32	      000Ar
+     33	0018  A2 0007r			 mov [text + 7], al
+     34
+     35	001B			     write_address_of_the_second_number:
+     36	001B  BF 001Er			 lea di, numbers + 1
+     37	001E  B9 0001			 mov cx, 1
+     38
+     39	0021			     switch_numbers_word_first:
+     40	0021  8A 26 0022r		 mov ah, numbers + 5
+     41	0025  A0 0023r			 mov al, numbers + 6
+     42	0028  A2 0022r			 mov numbers + 5, al
+     43	002B  88 26 0023r		 mov numbers + 6, ah
+     44
+     45	002F			     switch_numbers_word_second:
+     46	002F  8A 26 0022r		 mov ah, numbers + 5
+     47	0033  A0 0023r			 mov al, numbers + 6
+     48	0036  86 E0			 xchg ah, al
+     49	0038  88 26 0022r		 mov numbers + 5, ah
+     50	003C  A2 0023r			 mov numbers + 6, al
+     51
+     52	003F			     switch_numbers_double_word:
+     53	003F  FF 36 0020r FF 36	  +	 push dword ptr	[numbers + 1]
+     54	      001Er
+     55	0047  8F 06 0020r		 pop word ptr [numbers + 3]
+     56	004B  8F 06 001Er		 pop word ptr [numbers + 1]
+     57
+Turbo Assembler	 Version 2.51	     09/30/19 11:49:19	    Page 2
+PR2_2.ASM
+
+
+
+     58	004F  B4 4C			     mov     ah, 4Ch
+     59	0051  CD 21			     int     21h
+     60
+     61	0053			     cseg    ends
+     62
+     63				     end     start
+Turbo Assembler	 Version 2.51	     09/30/19 11:49:19	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "09/30/19"
+??FILENAME			  Text	 "PR2_2	  "
+??TIME				  Text	 "11:49:19"
+??VERSION			  Number 0205
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CSEG
+@FILENAME			  Text	 PR2_2
+@WORDSIZE			  Text	 2
+NUMBERS				  Byte	 DSEG:001D
+START				  Near	 CSEG:0000
+SWITCH_NUMBERS_DOUBLE_WORD	  Near	 CSEG:003F
+SWITCH_NUMBERS_WORD_FIRST	  Near	 CSEG:0021
+SWITCH_NUMBERS_WORD_SECOND	  Near	 CSEG:002F
+TEXT				  Byte	 DSEG:0000
+TRANSFORM_TEXT			  Near	 CSEG:0005
+WRITE_ADDRESS_OF_THE_SECOND_NUMB  Near	 CSEG:001B
+ER
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CSEG				  16  0053 Para	  none	  CODE
+DSEG				  16  0024 Para	  none	  DATA
+SSEG				  16  0080 Para	  Stack	  STACK
+
