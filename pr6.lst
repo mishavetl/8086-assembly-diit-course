@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 1
+Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 1
 pr6.ASM
 
 
@@ -60,7 +60,7 @@ pr6.ASM
      55				     ; =========================================================
      56	000A			     output_number:
      57	000A  3D 0000			 cmp ax, 0
-Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 2
+Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 2
 pr6.ASM
 
 
@@ -117,12 +117,12 @@ pr6.ASM
     107				     ; Input point
     108				     ; ---------------------------------------------------------
     109	0052			     start:
-    110	0052  E8 0062			 call init
+    110	0052  E8 0061			 call init
     111
     112	0055  E8 FFE8			 call input_data
     113
     114	0058  BB 0000			 mov bx, 0 ; Maximum length
-Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 3
+Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 3
 pr6.ASM
 
 
@@ -166,48 +166,47 @@ pr6.ASM
     151
     152	008F  8B D6			 mov dx, si
     153	0091  03 F3			 add si, bx
-    154	0093  C7 04 0024		 mov [si], '$'
-*Warning* pr6.ASM(145) Argument	needs type override
-    155	0097  E8 FF66			 call output_text
+    154	0093  C6 04 24			 mov byte ptr [si], '$'
+    155	0096  E8 FF67			 call output_text
     156
-    157	009A  BA 0037r			 lea dx, length_msg
-    158	009D  E8 FF60			 call output_text
+    157	0099  BA 0037r			 lea dx, length_msg
+    158	009C  E8 FF61			 call output_text
     159
-    160	00A0  8B C3			 mov ax, bx
-    161	00A2  E8 FF65			 call output_number
+    160	009F  8B C3			 mov ax, bx
+    161	00A1  E8 FF66			 call output_number
     162
-    163	00A5  BA 0049r			 lea dx, index_msg
-    164	00A8  E8 FF55			 call output_text
+    163	00A4  BA 0049r			 lea dx, index_msg
+    164	00A7  E8 FF56			 call output_text
     165
-    166	00AB  58			 pop ax
-    167	00AC  E8 FF5B			 call output_number
+    166	00AA  58			 pop ax
+    167	00AB  E8 FF5C			 call output_number
     168
-    169	00AF			     _exit:
-    170	00AF  B2 0A			 mov dl, LF
-Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 4
+    169	00AE			     _exit:
+    170	00AE  B2 0A			 mov dl, LF
+    171	00B0  E8 FF52			 call output_character
+Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 4
 pr6.ASM
 
 
 
-    171	00B1  E8 FF51			 call output_character
-    172	00B4  E8 0006			 call exit
+    172	00B3  E8 0006			 call exit
     173
     174				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     175				     ; Initialization and exit functions
     176				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    177	00B7			     init:
-    178	00B7  B8 0000s			 mov ax, dseg
-    179	00BA  8E D8			 mov ds, ax
-    180	00BC  C3			 ret
+    177	00B6			     init:
+    178	00B6  B8 0000s			 mov ax, dseg
+    179	00B9  8E D8			 mov ds, ax
+    180	00BB  C3			 ret
     181
-    182	00BD			     exit:
-    183	00BD  B4 4C			 mov ah, 4Ch
-    184	00BF  CD 21			 int 21h
-    185	00C1  C3			 ret
+    182	00BC			     exit:
+    183	00BC  B4 4C			 mov ah, 4Ch
+    184	00BE  CD 21			 int 21h
+    185	00C0  C3			 ret
     186
-    187	00C2			     cseg ends
+    187	00C1			     cseg ends
     188					 end start
-Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 5
+Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 5
 Symbol Table
 
 
@@ -217,7 +216,7 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "10/22/19"
 ??FILENAME			  Text	 "pr6	  "
-??TIME				  Text	 "19:17:58"
+??TIME				  Text	 "19:21:57"
 ??VERSION			  Number 0205
 @CPU				  Text	 0101H
 @CURSEG				  Text	 CSEG
@@ -229,9 +228,9 @@ BUFFER_READ			  Byte	 DSEG:0055
 BUFFER_SIZE			  Byte	 DSEG:0054
 CR				  Number 000D
 END_UPDATE_MAX			  Near	 CSEG:007E
-EXIT				  Near	 CSEG:00BD
+EXIT				  Near	 CSEG:00BC
 INDEX_MSG			  Byte	 DSEG:0049
-INIT				  Near	 CSEG:00B7
+INIT				  Near	 CSEG:00B6
 INPUT_BUFFER			  Near	 CSEG:003B
 INPUT_DATA			  Near	 CSEG:0040
 LENGTH_MSG			  Byte	 DSEG:0037
@@ -249,17 +248,11 @@ QUOTE				  Number 0027
 START				  Near	 CSEG:0052
 STR_MSG				  Byte	 DSEG:0004
 WORD_MSG			  Byte	 DSEG:0015
-_EXIT				  Near	 CSEG:00AF
+_EXIT				  Near	 CSEG:00AE
 
 Groups & Segments		  Bit Size Align  Combine Class
 
-CSEG				  16  00C2 Para	  none	  CODE
+CSEG				  16  00C1 Para	  none	  CODE
 DSEG				  16  0155 Para	  none	  DATA
 SSEG				  16  0080 Para	  Stack	  STACK
-Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 6
-Error Summary
-
-
-
-*Warning* pr6.ASM(145) Argument	needs type override
 

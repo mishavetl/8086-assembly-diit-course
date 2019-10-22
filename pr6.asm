@@ -142,7 +142,7 @@ end_update_max:
     
     mov dx, si
     add si, bx
-    mov [si], '$'
+    mov byte ptr [si], '$'
     call output_text
 
     lea dx, length_msg
