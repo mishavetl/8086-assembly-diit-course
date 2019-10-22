@@ -1,0 +1,265 @@
+Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 1
+pr6.ASM
+
+
+
+      1	0000			     sseg    segment stack 'stack'
+      2	0000  80*(??)			 db  128 dup(?)
+      3	0080			     sseg    ends
+      4
+      5	0000			     dseg    segment 'data'
+      6
+      7
+      8	      =	000D		     CR	     equ 13d
+      9	      =	000A		     LF	     equ 10d
+     10	      =	0027		     QUOTE   equ 027h
+     11
+     12				     ; % Private data %
+     13	0000  FFFF		     minus	 dw -1
+     14	0002  000A		     base	 dw 10
+     15	0004  53 6F 75 72 63 65	20+  str_msg	 db 'Source string = $'
+     16	      73 74 72 69 6E 67	20+
+     17	      3D 20 24
+     18	0015  57 6F 72 64 20 77	69+  word_msg	 db 'Word with the maximum length is ',	QUOTE, '$'
+     19	      74 68 20 74 68 65	20+
+     20	      6D 61 78 69 6D 75	6D+
+     21	      20 6C 65 6E 67 74	68+
+     22	      20 69 73 20 27 24
+     23	0037  27 20 77 69 74 68	20+  length_msg	 db QUOTE, ' with length of $'
+     24	      6C 65 6E 67 74 68	20+
+     25	      6F 66 20 24
+     26	0049  20 61 74 20 69 6E	64+  index_msg	 db ' at index $'
+     27	      65 78 20 24
+     28	0054  FF		     buffer_size db 255
+     29	0055  00		     buffer_read db 0
+     30	0056  FF*(24)		     buffer	 db 255	dup('$')
+     31
+     32	0155			     dseg    ends
+     33
+     34	0000			     cseg    segment 'code'
+     35					 assume	     cs:cseg, ds:dseg, ss:sseg
+     36
+     37				     ; =========================================================
+     38				     ; Output text procedure
+     39				     ; =========================================================
+     40	0000			     output_text:
+     41	0000  B4 09			 mov ah, 09h
+     42	0002  CD 21			     int     21h
+     43	0004  C3			 ret
+     44
+     45				     ; =========================================================
+     46				     ; Output character	procedure
+     47				     ; =========================================================
+     48	0005			     output_character:
+     49	0005  B4 02			 mov ah, 02h
+     50	0007  CD 21			 int 21h
+     51	0009  C3			 ret
+     52
+     53				     ; =========================================================
+     54				     ; Output number procedure
+     55				     ; =========================================================
+     56	000A			     output_number:
+     57	000A  3D 0000			 cmp ax, 0
+Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 2
+pr6.ASM
+
+
+
+     58	000D  7D 0B			 jge output_number_unsigned
+     59	000F  F7 2E 0000r		 imul minus
+     60	0013  93			 xchg ax, bx
+     61	0014  B2 2D			 mov dl, '-'
+     62	0016  E8 FFEC			 call output_character
+     63	0019  93			 xchg ax, bx
+     64	001A			     output_number_unsigned:
+     65	001A  BB 0000			 mov bx, 0
+     66	001D  B9 0000			 mov cx, 0
+     67	0020			     output_number_loop:
+     68	0020  3D 0000			 cmp ax, 0
+     69	0023  99			 cwd
+     70	0024  F7 3E 0002r		 idiv base
+     71	0028  80 C2 30			 add dl, '0'
+     72	002B  52			 push dx
+     73	002C  43			 inc bx
+     74	002D  3D 0000			 cmp ax, 0
+     75	0030  E0 EE			 loopne	output_number_loop
+     76	0032  8B CB			 mov cx, bx
+     77	0034			     output_stack:
+     78	0034  5A			 pop dx
+     79	0035  E8 FFCD			 call output_character
+     80	0038  E2 FA			 loop output_stack
+     81	003A  C3			 ret
+     82
+     83				     ; =========================================================
+     84				     ; Buffered	input procedure
+     85				     ; =========================================================
+     86	003B			     input_buffer:
+     87	003B  B4 0A			 mov ah, LF
+     88	003D  CD 21			     int     21h
+     89	003F  C3			 ret
+     90
+     91				     ; =========================================================
+     92				     ; Input data procedure
+     93				     ; =========================================================
+     94	0040			     input_data:
+     95	0040  BA 0004r			 lea dx, str_msg
+     96	0043  E8 FFBA			 call output_text
+     97
+     98	0046  BA 0054r			 lea dx, buffer_size
+     99	0049  E8 FFEF			 call input_buffer
+    100
+    101	004C  B2 0A			 mov dl, 0Ah
+    102	004E  E8 FFB4			 call output_character
+    103
+    104	0051  C3			 ret
+    105
+    106				     ; ---------------------------------------------------------
+    107				     ; Input point
+    108				     ; ---------------------------------------------------------
+    109	0052			     start:
+    110	0052  E8 0062			 call init
+    111
+    112	0055  E8 FFE8			 call input_data
+    113
+    114	0058  BB 0000			 mov bx, 0 ; Maximum length
+Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 3
+pr6.ASM
+
+
+
+    115	005B  B5 00			 mov ch, 0
+    116	005D  8A 0E 0055r		 mov cl, buffer_read
+    117	0061  41			 inc cx
+    118
+    119	0062  BE 0055r			 lea si, buffer	- 1 ; Maximum word start index
+    120	0065  BF 0055r			 lea di, buffer	- 1
+    121
+    122	0068			     process_string:
+    123	0068  B8 0000			 mov ax, 0 ; Current length
+    124	006B  8B D7			 mov dx, di
+    125
+    126	006D			     process_word:
+    127	006D  47			 inc di
+    128	006E  40			 inc ax
+    129	006F  80 3D 20			 cmp byte ptr [di], ' '
+    130	0072  E0 F9			 loopne	process_word
+    131
+    132	0074  48			 dec ax
+    133
+    134	0075  3B C3			 cmp ax, bx
+    135	0077  76 05			 jbe end_update_max
+    136	0079  8B D8			 mov bx, ax
+    137	007B  8B F2			 mov si, dx
+    138	007D  46			 inc si
+    139
+    140	007E			     end_update_max:
+    141	007E  41			 inc cx
+    142	007F  E2 E7			 loop process_string
+    143
+    144	0081  BA 0015r			 lea dx, word_msg
+    145	0084  E8 FF79			 call output_text
+    146
+    147	0087  B9 0056r			 lea cx, buffer
+    148	008A  8B D6			 mov dx, si
+    149	008C  2B D1			 sub dx, cx
+    150	008E  52			 push dx
+    151
+    152	008F  8B D6			 mov dx, si
+    153	0091  03 F3			 add si, bx
+    154	0093  C7 04 0024		 mov [si], '$'
+*Warning* pr6.ASM(145) Argument	needs type override
+    155	0097  E8 FF66			 call output_text
+    156
+    157	009A  BA 0037r			 lea dx, length_msg
+    158	009D  E8 FF60			 call output_text
+    159
+    160	00A0  8B C3			 mov ax, bx
+    161	00A2  E8 FF65			 call output_number
+    162
+    163	00A5  BA 0049r			 lea dx, index_msg
+    164	00A8  E8 FF55			 call output_text
+    165
+    166	00AB  58			 pop ax
+    167	00AC  E8 FF5B			 call output_number
+    168
+    169	00AF			     _exit:
+    170	00AF  B2 0A			 mov dl, LF
+Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 4
+pr6.ASM
+
+
+
+    171	00B1  E8 FF51			 call output_character
+    172	00B4  E8 0006			 call exit
+    173
+    174				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    175				     ; Initialization and exit functions
+    176				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    177	00B7			     init:
+    178	00B7  B8 0000s			 mov ax, dseg
+    179	00BA  8E D8			 mov ds, ax
+    180	00BC  C3			 ret
+    181
+    182	00BD			     exit:
+    183	00BD  B4 4C			 mov ah, 4Ch
+    184	00BF  CD 21			 int 21h
+    185	00C1  C3			 ret
+    186
+    187	00C2			     cseg ends
+    188					 end start
+Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "10/22/19"
+??FILENAME			  Text	 "pr6	  "
+??TIME				  Text	 "19:17:58"
+??VERSION			  Number 0205
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CSEG
+@FILENAME			  Text	 PR6
+@WORDSIZE			  Text	 2
+BASE				  Word	 DSEG:0002
+BUFFER				  Byte	 DSEG:0056
+BUFFER_READ			  Byte	 DSEG:0055
+BUFFER_SIZE			  Byte	 DSEG:0054
+CR				  Number 000D
+END_UPDATE_MAX			  Near	 CSEG:007E
+EXIT				  Near	 CSEG:00BD
+INDEX_MSG			  Byte	 DSEG:0049
+INIT				  Near	 CSEG:00B7
+INPUT_BUFFER			  Near	 CSEG:003B
+INPUT_DATA			  Near	 CSEG:0040
+LENGTH_MSG			  Byte	 DSEG:0037
+LF				  Number 000A
+MINUS				  Word	 DSEG:0000
+OUTPUT_CHARACTER		  Near	 CSEG:0005
+OUTPUT_NUMBER			  Near	 CSEG:000A
+OUTPUT_NUMBER_LOOP		  Near	 CSEG:0020
+OUTPUT_NUMBER_UNSIGNED		  Near	 CSEG:001A
+OUTPUT_STACK			  Near	 CSEG:0034
+OUTPUT_TEXT			  Near	 CSEG:0000
+PROCESS_STRING			  Near	 CSEG:0068
+PROCESS_WORD			  Near	 CSEG:006D
+QUOTE				  Number 0027
+START				  Near	 CSEG:0052
+STR_MSG				  Byte	 DSEG:0004
+WORD_MSG			  Byte	 DSEG:0015
+_EXIT				  Near	 CSEG:00AF
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CSEG				  16  00C2 Para	  none	  CODE
+DSEG				  16  0155 Para	  none	  DATA
+SSEG				  16  0080 Para	  Stack	  STACK
+Turbo Assembler	 Version 2.51	     10/22/19 19:17:58	    Page 6
+Error Summary
+
+
+
+*Warning* pr6.ASM(145) Argument	needs type override
+
