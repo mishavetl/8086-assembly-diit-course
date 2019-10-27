@@ -150,16 +150,22 @@ separate_next_digit:
     cmp ax, 0
     jne separate_next_digit
 
+    test cx, 1
+    jnz counter_odd
+    push 0
+counter_odd:
     mov bx, 0
+
 process_next_digit:
     pop ax
     test cx, 1
-    jne next_iteration
+    jz next_iteration
     add bx, ax
 
 next_iteration:
     loop process_next_digit
     
+    pop ax
     push bx
 
     lea dx, sum_msg

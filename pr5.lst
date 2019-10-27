@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 2.51	     10/17/19 10:43:09	    Page 1
+Turbo Assembler	 Version 2.51	     10/24/19 12:10:46	    Page 1
 pr5.ASM
 
 
@@ -60,7 +60,7 @@ pr5.ASM
      55	0020			     output_number_loop:
      56	0020  3D 0000			 cmp ax, 0
      57	0023  99			 cwd
-Turbo Assembler	 Version 2.51	     10/17/19 10:43:09	    Page 2
+Turbo Assembler	 Version 2.51	     10/24/19 12:10:46	    Page 2
 pr5.ASM
 
 
@@ -122,7 +122,7 @@ pr5.ASM
     112	007F  47			 inc di
     113	0080  E2 F2			 loop input_number_loop
     114	0082  99			 cwd
-Turbo Assembler	 Version 2.51	     10/17/19 10:43:09	    Page 3
+Turbo Assembler	 Version 2.51	     10/24/19 12:10:46	    Page 3
 pr5.ASM
 
 
@@ -153,7 +153,7 @@ pr5.ASM
     138				     ; Input point
     139				     ; ---------------------------------------------------------
     140	009F			     start:
-    141	009F  E8 0035			 call init
+    141	009F  E8 0046			 call init
     142
     143	00A2  E8 FFE2			 call input_data
     144
@@ -166,47 +166,104 @@ pr5.ASM
     151	00B1  3D 0000			 cmp ax, 0
     152	00B4  75 F2			 jne separate_next_digit
     153
-    154	00B6  BB 0000			 mov bx, 0
-    155	00B9			     process_next_digit:
-    156	00B9  58			 pop ax
-    157	00BA  F7 C1 0001		 test cx, 1
-    158	00BE  75 02			 jne next_iteration
-    159	00C0  03 D8			 add bx, ax
+    154	00B6  F7 C1 0001		 test cx, 1
+    155	00BA  75 0A			 jnz counter_odd
+    156	00BC  50 55 8B EC C7 46	02+	 push 0
+    157	      0000 5D
+    158	00C6			     counter_odd:
+    159	00C6  BB 0000			 mov bx, 0
     160
-    161	00C2			     next_iteration:
-    162	00C2  E2 F5			 loop process_next_digit
-    163
-    164	00C4  53			 push bx
-    165
-    166	00C5  BA 0007r			 lea dx, sum_msg
-    167	00C8  E8 FF35			 call output_text
-    168
-    169	00CB  58			 pop ax
-    170	00CC  E8 FF3B			 call output_number
-    171
-Turbo Assembler	 Version 2.51	     10/17/19 10:43:09	    Page 4
+    161	00C9			     process_next_digit:
+    162	00C9  58			 pop ax
+    163	00CA  F7 C1 0001		 test cx, 1
+    164	00CE  74 02			 jz next_iteration
+    165	00D0  03 D8			 add bx, ax
+    166
+    167	00D2			     next_iteration:
+    168	00D2  E2 F5			 loop process_next_digit
+    169
+    170	00D4  58			 pop ax
+    171	00D5  53			 push bx
+Turbo Assembler	 Version 2.51	     10/24/19 12:10:46	    Page 4
 pr5.ASM
 
 
 
-    172	00CF			     _exit:
-    173	00CF  B2 0A			 mov dl, 0Ah
-    174	00D1  E8 FF31			 call output_character
-    175	00D4  E8 0006			 call exit
-    176
-    177				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    178				     ; Initialization and exit functions
-    179				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    180	00D7			     init:
-    181	00D7  B8 0000s			 mov ax, dseg
-    182	00DA  8E D8			 mov ds, ax
-    183	00DC  C3			 ret
-    184
-    185	00DD			     exit:
-    186	00DD  B4 4C			 mov ah, 4Ch
-    187	00DF  CD 21			 int 21h
-    188	00E1  C3			 ret
-    189
-    190	00E2			     cseg ends
-    191					 end start
+    172
+    173	00D6  BA 0007r			 lea dx, sum_msg
+    174	00D9  E8 FF24			 call output_text
+    175
+    176	00DC  58			 pop ax
+    177	00DD  E8 FF2A			 call output_number
+    178
+    179	00E0			     _exit:
+    180	00E0  B2 0A			 mov dl, 0Ah
+    181	00E2  E8 FF20			 call output_character
+    182	00E5  E8 0006			 call exit
+    183
+    184				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    185				     ; Initialization and exit functions
+    186				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    187	00E8			     init:
+    188	00E8  B8 0000s			 mov ax, dseg
+    189	00EB  8E D8			 mov ds, ax
+    190	00ED  C3			 ret
+    191
+    192	00EE			     exit:
+    193	00EE  B4 4C			 mov ah, 4Ch
+    194	00F0  CD 21			 int 21h
+    195	00F2  C3			 ret
+    196
+    197	00F3			     cseg ends
+    198					 end start
+Turbo Assembler	 Version 2.51	     10/24/19 12:10:46	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "10/24/19"
+??FILENAME			  Text	 "pr5	  "
+??TIME				  Text	 "12:10:46"
+??VERSION			  Number 0205
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CSEG
+@FILENAME			  Text	 PR5
+@WORDSIZE			  Text	 2
+BASE				  Word	 DSEG:000E
+BUFFER				  Byte	 DSEG:0014
+BUFFER_READ			  Byte	 DSEG:0013
+BUFFER_SIZE			  Byte	 DSEG:0012
+COUNTER_ODD			  Near	 CSEG:00C6
+EXIT				  Near	 CSEG:00EE
+INIT				  Near	 CSEG:00E8
+INPUT_BUFFER			  Near	 CSEG:0040
+INPUT_CHARACTER			  Near	 CSEG:003B
+INPUT_DATA			  Near	 CSEG:0087
+INPUT_NUMBER			  Near	 CSEG:0045
+INPUT_NUMBER_LOOP		  Near	 CSEG:0074
+INPUT_NUMBER_POSITIVE		  Near	 CSEG:006A
+MINUS				  Word	 DSEG:0010
+N				  Word	 DSEG:0000
+NEXT_ITERATION			  Near	 CSEG:00D2
+N_MSG				  Byte	 DSEG:0002
+OUTPUT_CHARACTER		  Near	 CSEG:0005
+OUTPUT_NUMBER			  Near	 CSEG:000A
+OUTPUT_NUMBER_LOOP		  Near	 CSEG:0020
+OUTPUT_NUMBER_UNSIGNED		  Near	 CSEG:001A
+OUTPUT_STACK			  Near	 CSEG:0034
+OUTPUT_TEXT			  Near	 CSEG:0000
+PROCESS_NEXT_DIGIT		  Near	 CSEG:00C9
+SEPARATE_NEXT_DIGIT		  Near	 CSEG:00A8
+START				  Near	 CSEG:009F
+SUM_MSG				  Byte	 DSEG:0007
+_EXIT				  Near	 CSEG:00E0
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CSEG				  16  00F3 Para	  none	  CODE
+DSEG				  16  0024 Para	  none	  DATA
+SSEG				  16  0080 Para	  Stack	  STACK
 

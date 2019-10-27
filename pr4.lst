@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 1
+Turbo Assembler	 Version 2.51	     10/27/19 12:30:50	    Page 1
 pr4.ASM
 
 
@@ -60,7 +60,7 @@ pr4.ASM
      55	0005			     output_character:
      56	0005  B4 02			 mov ah, 02h
      57	0007  CD 21			 int 21h
-Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 2
+Turbo Assembler	 Version 2.51	     10/27/19 12:30:50	    Page 2
 pr4.ASM
 
 
@@ -122,7 +122,7 @@ pr4.ASM
     112	004B  B8 0000			 mov ax, 0
     113	004E  BB 0000			 mov bx, 0
     114	0051  B9 0000			 mov cx, 0
-Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 3
+Turbo Assembler	 Version 2.51	     10/27/19 12:30:50	    Page 3
 pr4.ASM
 
 
@@ -184,7 +184,7 @@ pr4.ASM
     169				     ; ---------------------------------------------------------
     170	00B4			     start:
     171	00B4  E8 0043			 call init
-Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 4
+Turbo Assembler	 Version 2.51	     10/27/19 12:30:50	    Page 4
 pr4.ASM
 
 
@@ -245,7 +245,7 @@ pr4.ASM
     225
     226	0105			     cseg ends
     227					 end start
-Turbo Assembler	 Version 2.51	     10/17/19 11:09:26	    Page 5
+Turbo Assembler	 Version 2.51	     10/27/19 12:30:50	    Page 5
 Symbol Table
 
 
@@ -253,9 +253,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "10/17/19"
+??DATE				  Text	 "10/27/19"
 ??FILENAME			  Text	 "pr4	  "
-??TIME				  Text	 "11:09:26"
+??TIME				  Text	 "12:30:50"
 ??VERSION			  Number 0205
 @CPU				  Text	 0101H
 @CURSEG				  Text	 CSEG
