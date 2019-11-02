@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 1
+Turbo Assembler	 Version 2.51	     10/31/19 09:57:08	    Page 1
 pr6.ASM
 
 
@@ -60,7 +60,7 @@ pr6.ASM
      55				     ; =========================================================
      56	000A			     output_number:
      57	000A  3D 0000			 cmp ax, 0
-Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 2
+Turbo Assembler	 Version 2.51	     10/31/19 09:57:08	    Page 2
 pr6.ASM
 
 
@@ -122,7 +122,7 @@ pr6.ASM
     112	0055  E8 FFE8			 call input_data
     113
     114	0058  BB 0000			 mov bx, 0 ; Maximum length
-Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 3
+Turbo Assembler	 Version 2.51	     10/31/19 09:57:08	    Page 3
 pr6.ASM
 
 
@@ -184,7 +184,7 @@ pr6.ASM
     169	00AE			     _exit:
     170	00AE  B2 0A			 mov dl, LF
     171	00B0  E8 FF52			 call output_character
-Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 4
+Turbo Assembler	 Version 2.51	     10/31/19 09:57:08	    Page 4
 pr6.ASM
 
 
@@ -206,7 +206,7 @@ pr6.ASM
     186
     187	00C1			     cseg ends
     188					 end start
-Turbo Assembler	 Version 2.51	     10/22/19 19:21:57	    Page 5
+Turbo Assembler	 Version 2.51	     10/31/19 09:57:08	    Page 5
 Symbol Table
 
 
@@ -214,9 +214,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "10/22/19"
+??DATE				  Text	 "10/31/19"
 ??FILENAME			  Text	 "pr6	  "
-??TIME				  Text	 "19:21:57"
+??TIME				  Text	 "09:57:08"
 ??VERSION			  Number 0205
 @CPU				  Text	 0101H
 @CURSEG				  Text	 CSEG

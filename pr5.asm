@@ -141,31 +141,19 @@ start:
 
     call input_data
     
-    mov cx, 0
+    mov bx, 0
 separate_next_digit:
     mov dx, 0
     div base
-    push dx
-    inc cx
+
+    test dx, 1
+    jz next_iteration
+    add bx, dx
+    
+next_iteration:
     cmp ax, 0
     jne separate_next_digit
 
-    test cx, 1
-    jnz counter_odd
-    push 0
-counter_odd:
-    mov bx, 0
-
-process_next_digit:
-    pop ax
-    test cx, 1
-    jz next_iteration
-    add bx, ax
-
-next_iteration:
-    loop process_next_digit
-    
-    pop ax
     push bx
 
     lea dx, sum_msg

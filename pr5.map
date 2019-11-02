@@ -3,7 +3,7 @@
 
  00000H 0007FH 00080H SSEG               STACK
  00080H 000A3H 00024H DSEG               DATA
- 000B0H 001A2H 000F3H CSEG               CODE
+ 000B0H 00189H 000DAH CSEG               CODE
 
 Program entry point at 000B:009F
 
