@@ -1,0 +1,504 @@
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 1
+pr6_2.ASM
+
+
+
+      1	0000			     sseg    segment stack 'stack'
+      2	0000  80*(??)			 db  128 dup(?)
+      3	0080			     sseg    ends
+      4
+      5	0000			     dseg    segment 'data'
+      6
+      7
+      8	      =	000D		     CR	     equ 13d
+      9	      =	000A		     LF	     equ 10d
+     10	      =	0027		     QUOTE   equ 027h
+     11
+     12				     ; - Input data -
+     13	0000  ????		     m			 dw ?
+     14	0002  ????		     n			 dw ?
+     15	0004  FF*(????)		     matrix		 dw 255	dup(?)
+     16
+     17				     ; % Private data %
+     18	0202  ????		     number_length	 dw ?
+     19	0204  FFFF		     minus		 dw -1
+     20	0206  0002		     two		 dw 2
+     21	0208  000A		     base		 dw 10
+     22	020A  4D 61 74 72 69 78	20+  m_msg		 db 'Matrix height (m) = $'
+     23	      68 65 69 67 68 74	20+
+     24	      28 6D 29 20 3D 20	24
+     25	021F  4D 61 74 72 69 78	20+  n_msg		 db 'Matrix width (n) =	$'
+     26	      77 69 64 74 68 20	28+
+     27	      6E 29 20 3D 20 24
+     28	0233  4D 61 74 72 69 78	20+  matrix_msg		 db 'Matrix (',	CR, LF,	'a11 a12', CR, LF, 'a21	a22', CR, LF, ') =', CR, LF,+
+     29	      28 0D 0A 61 31 31	20+  '$'
+     30	      61 31 32 0D 0A 61	32+
+     31	      31 20 61 32 32 0D	0A+
+     32	      29 20 3D 0D 0A 24
+     33	0255  4F 75 74 70 75 74	20+  output_start_msg	 db 'Output matrix = (', CR, LF, '$'
+     34	      6D 61 74 72 69 78	20+
+     35	      3D 20 28 0D 0A 24
+     36	0269  29 0D 0A 24	     output_end_msg	 db ')', CR, LF, '$'
+     37	026D  FF		     buffer_size	 db 255
+     38	026E  00		     buffer_read	 db 0
+     39	026F  FF*(24)		     buffer		 db 255	dup('$')
+     40
+     41	036E			     dseg    ends
+     42
+     43	0000			     cseg    segment 'code'
+     44					 assume	     cs:cseg, ds:dseg, ss:sseg
+     45
+     46				     ; =========================================================
+     47				     ; Output text procedure
+     48				     ; =========================================================
+     49	0000			     output_text:
+     50	0000  B4 09			 mov ah, 09h
+     51	0002  CD 21			     int     21h
+     52	0004  C3			 ret
+     53
+     54				     ; =========================================================
+     55				     ; Output character	procedure
+     56				     ; =========================================================
+     57	0005			     output_character:
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 2
+pr6_2.ASM
+
+
+
+     58	0005  B4 02			 mov ah, 02h
+     59	0007  CD 21			 int 21h
+     60	0009  C3			 ret
+     61
+     62				     ; =========================================================
+     63				     ; Output number procedure
+     64				     ; =========================================================
+     65	000A			     output_number proc	near
+     66	000A  53			 push bx
+     67	000B  52			 push dx
+     68	000C  51			 push cx
+     69
+     70	000D  3D 0000			 cmp ax, 0
+     71	0010  7D 0B			 jge output_number_unsigned
+     72	0012  F7 2E 0204r		 imul minus
+     73	0016  93			 xchg ax, bx
+     74	0017  B2 2D			 mov dl, '-'
+     75	0019  E8 FFE9			 call output_character
+     76	001C  93			 xchg ax, bx
+     77	001D			     output_number_unsigned:
+     78	001D  BB 0000			 mov bx, 0
+     79	0020  B9 0000			 mov cx, 0
+     80	0023			     output_number_loop:
+     81	0023  3D 0000			 cmp ax, 0
+     82	0026  99			 cwd
+     83	0027  F7 3E 0208r		 idiv base
+     84	002B  80 C2 30			 add dl, '0'
+     85	002E  52			 push dx
+     86	002F  43			 inc bx
+     87	0030  3D 0000			 cmp ax, 0
+     88	0033  E0 EE			 loopne	output_number_loop
+     89	0035  8B CB			 mov cx, bx
+     90	0037			     output_stack:
+     91	0037  5A			 pop dx
+     92	0038  E8 FFCA			 call output_character
+     93	003B  E2 FA			 loop output_stack
+     94
+     95	003D  59			 pop cx
+     96	003E  5A			 pop dx
+     97	003F  5B			 pop bx
+     98	0040  C3			 ret
+     99	0041			     output_number endp
+    100
+    101				     ; =========================================================
+    102				     ; Buffered	input procedure
+    103				     ; =========================================================
+    104	0041			     input_buffer:
+    105	0041  B4 0A			 mov ah, LF
+    106	0043  CD 21			     int     21h
+    107	0045  C3			 ret
+    108
+    109				     ; =========================================================
+    110				     ; Input number function
+    111				     ; @ret ax:	number from stdin
+    112				     ; =========================================================
+    113	0046			     input_number proc near
+    114	0046  53			 push bx
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 3
+pr6_2.ASM
+
+
+
+    115	0047  52			 push dx
+    116	0048  51			 push cx
+    117
+    118	0049  BA 026Dr			 lea dx, buffer_size
+    119	004C  E8 FFF2			 call input_buffer
+    120
+    121	004F  BF 026Fr			 lea di, buffer
+    122
+    123	0052  B9 0000			 mov cx, 0
+    124	0055  8A 0E 026Er		 mov cl, buffer_read
+    125	0059  89 0E 0202r		 mov number_length, cx
+    126	005D  E8 0004			 call parse_number
+    127
+    128	0060  59			 pop cx
+    129	0061  5A			 pop dx
+    130	0062  5B			 pop bx
+    131	0063  C3			 ret
+    132	0064			     input_number endp
+    133
+    134				     ; =========================================================
+    135				     ; Parse number function
+    136				     ; @param di: buffer pointer
+    137				     ; @param cx: max number length to parse
+    138				     ; @ret ax:	parsed number
+    139				     ; =========================================================
+    140	0064			     parse_number proc near
+    141	0064  53			 push bx
+    142	0065  52			 push dx
+    143
+    144	0066  B8 0000			 mov ax, 0
+    145	0069  BB 0000			 mov bx, 0
+    146	006C  8B 0E 0202r		 mov cx, number_length
+    147	0070  80 3D 2D			 cmp byte ptr [di], '-'
+    148	0073  75 0A			 jne input_number_positive
+    149	0075  FF 36 0204r		 push minus
+    150	0079  47			 inc di
+    151	007A  FE C9			 dec cl
+    152	007C  EB 0B 90			 jmp .input_number_loop
+    153	007F			     input_number_positive:
+    154	007F  50 55 8B EC C7 46	02+	 push 1
+    155	      0001 5D
+    156	0089			     .input_number_loop:
+    157	0089  8A 1D			 mov bl, byte ptr [di]
+    158	008B  80 FB 20			 cmp bl, ' '
+    159	008E  74 0C			 je break_input_number_loop
+    160	0090  F7 26 0208r		 mul base
+    161	0094  80 EB 30			 sub bl, '0'
+    162	0097  03 C3			 add ax, bx
+    163	0099  47			 inc di
+    164	009A  E2 ED			 loop .input_number_loop
+    165
+    166	009C			     break_input_number_loop:
+    167	009C  99			 cwd
+    168	009D  5B			 pop bx
+    169	009E  F7 EB			 imul bx
+    170	00A0  89 0E 0202r		 mov number_length, cx
+    171
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 4
+pr6_2.ASM
+
+
+
+    172	00A4  5A			 pop dx
+    173	00A5  5B			 pop bx
+    174	00A6  C3			 ret
+    175	00A7			     parse_number endp
+    176
+    177				     ; =========================================================
+    178				     ; Matrix input/output procedures
+    179				     ; =========================================================
+    180	00A7			     input_matrix proc near
+    181	00A7  52			 push dx
+    182	00A8  57			 push di
+    183	00A9  53			 push bx
+    184	00AA  51			 push cx
+    185
+    186	00AB  BA 0004r			 lea dx, matrix
+    187	00AE  8B 0E 0000r		 mov cx, m
+    188
+    189	00B2			     input_matrix_loop:
+    190	00B2  87 D9			 xchg bx, cx
+    191
+    192	00B4  52			 push dx
+    193	00B5  B2 20			 mov dl, ' '
+    194	00B7  E8 FF4B			 call output_character
+    195
+    196	00BA  BA 026Dr			 lea dx, buffer_size
+    197	00BD  E8 FF81			 call input_buffer
+    198	00C0  5A			 pop dx
+    199
+    200	00C1  BF 026Fr			 lea di, buffer
+    201	00C4  B5 00			 mov ch, 0
+    202	00C6  8A 0E 026Er		 mov cl, buffer_read
+    203
+    204	00CA  52			 push dx
+    205	00CB  B2 0D			 mov dl, CR
+    206	00CD  E8 FF35			 call output_character
+    207	00D0  B2 0A			 mov dl, LF
+    208	00D2  E8 FF30			 call output_character
+    209	00D5  5A			 pop dx
+    210
+    211	00D6				 .input_matrix_line_loop:
+    212	00D6  89 0E 0202r		     mov number_length,	cx
+    213	00DA  E8 FF87			     call parse_number
+    214	00DD  8B 0E 0202r		     mov cx, number_length
+    215	00E1  87 FA			     xchg di, dx
+    216	00E3  89 05			     mov [di], ax
+    217	00E5  87 FA			     xchg di, dx
+    218	00E7  47			     inc di
+    219	00E8  83 C2 02			     add dx, 2
+    220	00EB  49			     dec cx
+    221	00EC  83 F9 00			     cmp cx, 0
+    222	00EF  7F E5			     jg	.input_matrix_line_loop
+    223
+    224	00F1  87 D9			 xchg bx, cx
+    225	00F3  E2 BD			 loop input_matrix_loop
+    226
+    227	00F5  59			 pop cx
+    228	00F6  5B			 pop bx
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 5
+pr6_2.ASM
+
+
+
+    229	00F7  5F			 pop di
+    230	00F8  5A			 pop dx
+    231	00F9  C3			 ret
+    232	00FA			     input_matrix endp
+    233
+    234	00FA			     output_matrix proc	near
+    235	00FA  51			 push cx
+    236	00FB  53			 push bx
+    237	00FC  57			 push di
+    238
+    239	00FD  8B 0E 0000r		 mov cx, m
+    240	0101  BF 0004r			 lea di, matrix
+    241
+    242	0104			     output_matrix_loop:
+    243	0104  87 CB			 xchg cx, bx
+    244	0106  8B 0E 0002r		 mov cx, n
+    245	010A				 .output_matrix_line_loop:
+    246	010A  8B 05			     mov ax, [di]
+    247	010C  E8 FEFB			     call output_number
+    248	010F  B2 20			     mov dl, ' '
+    249	0111  E8 FEF1			     call output_character
+    250	0114  83 C7 02			     add di, 2
+    251	0117  E2 F1			     loop .output_matrix_line_loop
+    252
+    253	0119  B2 0D			 mov dl, CR
+    254	011B  E8 FEE7			 call output_character
+    255	011E  B2 0A			 mov dl, LF
+    256	0120  E8 FEE2			 call output_character
+    257
+    258	0123  87 CB			 xchg cx, bx
+    259	0125  E2 DD			 loop output_matrix_loop
+    260
+    261	0127  5F			 pop di
+    262	0128  5B			 pop bx
+    263	0129  59			 pop cx
+    264	012A  C3			 ret
+    265	012B			     output_matrix endp
+    266
+    267				     ; =========================================================
+    268				     ; Find maximum element of a row
+    269				     ; @param di: matrix row pointer
+    270				     ; @param cx: number of elements
+    271				     ; @ret ax:	maximum	element
+    272				     ; =========================================================
+    273	012B			     max_element proc near
+    274	012B  B8 0000			 mov ax, 0
+    275
+    276	012E			     max_element_loop:
+    277	012E  39 05			 cmp [di], ax
+    278	0130  7E 02			 jle endif_update_max
+    279	0132  8B 05			 mov ax, [di]
+    280	0134			     endif_update_max:
+    281	0134  83 C7 02			 add di, 2
+    282	0137  E2 F5			 loop max_element_loop
+    283	0139  C3			 ret
+    284	013A			     max_element endp
+    285
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 6
+pr6_2.ASM
+
+
+
+    286	013A			     xchg_rows proc near
+    287	013A  51			 push cx
+    288	013B  57			 push di
+    289
+    290	013C  B9 0000			 mov cx, 0
+    291	013F  8B F8			 mov di, ax
+    292
+    293	0141			     xchg_loop:
+    294	0141  8B 05			 mov ax, word ptr [di]
+    295	0143  87 07			 xchg ax, word ptr [bx]
+    296	0145  89 05			 mov word ptr [di], ax
+    297	0147  83 C7 02			 add di, 2
+    298	014A  83 C3 02			 add bx, 2
+    299	014D  41			 inc cx
+    300	014E  3B 0E 0002r		 cmp cx, n
+    301	0152  7C ED			 jl xchg_loop
+    302
+    303	0154  5F			 pop di
+    304	0155  59			 pop cx
+    305	0156  C3			 ret
+    306	0157			     xchg_rows endp
+    307
+    308				     ; =========================================================
+    309				     ; Sort matrix by maximum elements of row
+    310				     ; @param matrix: matrix
+    311				     ; @param m: number	of rows
+    312				     ; @param n: number	of columns
+    313				     ; =========================================================
+    314	0157			     sort_by_max_element proc near
+    315	0157  50			 push ax
+    316	0158  53			 push bx
+    317	0159  51			 push cx
+    318	015A  52			 push dx
+    319
+    320	015B  8B 0E 0000r		 mov cx, m
+    321	015F  49			 dec cx
+    322
+    323	0160			     sort_loop1:
+    324	0160  8B D9			 mov bx, cx
+    325	0162  8B 0E 0000r		 mov cx, m
+    326	0166  2B CB			 sub cx, bx
+    327	0168  53			 push bx
+    328
+    329	0169			     sort_loop2:
+    330	0169  52			 push dx
+    331	016A  BA 0000			 mov dx, 0
+    332	016D  8B C1			 mov ax, cx
+    333	016F  48			 dec ax
+    334	0170  F7 26 0002r		 mul n
+    335	0174  F7 26 0206r		 mul two
+    336	0178  5A			 pop dx
+    337
+    338	0179  50			 push ax
+    339	017A  52			 push dx
+    340	017B  BA 0000			 mov dx, 0
+    341	017E  8B C1			 mov ax, cx
+    342	0180  F7 26 0002r		 mul n
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 7
+pr6_2.ASM
+
+
+
+    343	0184  F7 26 0206r		 mul two
+    344	0188  8B D8			 mov bx, ax
+    345	018A  5A			 pop dx
+    346	018B  58			 pop ax
+    347
+    348	018C  05 0004r			 add ax, offset	matrix
+    349
+    350	018F  50			 push ax
+    351	0190  51			 push cx
+    352	0191  8B F8			 mov di, ax
+    353	0193  8B 0E 0002r		 mov cx, n
+    354	0197  E8 FF91			 call max_element
+    355	019A  8B D0			 mov dx, ax
+    356	019C  59			 pop cx
+    357	019D  58			 pop ax
+    358
+    359	019E  81 C3 0004r		 add bx, offset	matrix
+    360
+    361	01A2  50			 push ax
+    362	01A3  51			 push cx
+    363	01A4  8B FB			 mov di, bx
+    364	01A6  8B 0E 0002r		 mov cx, n
+    365	01AA  E8 FF7E			 call max_element
+    366	01AD  59			 pop cx
+    367	01AE  3B D0			 cmp dx, ax
+    368	01B0  58			 pop ax
+    369	01B1  7E 03			 jle endif_xchg
+    370	01B3  E8 FF84			 call xchg_rows
+    371	01B6			     endif_xchg:
+    372	01B6  E2 B1			 loop sort_loop2
+    373
+    374	01B8  5B			 pop bx
+    375	01B9  8B CB			 mov cx, bx
+    376	01BB  E2 A3			 loop sort_loop1
+    377
+    378	01BD  5A			 pop dx
+    379	01BE  59			 pop cx
+    380	01BF  5B			 pop bx
+    381	01C0  58			 pop ax
+    382	01C1  C3			 ret
+    383	01C2			     sort_by_max_element endp
+    384
+    385				     ; =========================================================
+    386				     ; Input data procedure
+    387				     ; =========================================================
+    388	01C2			     input_data:
+    389	01C2  BA 020Ar			 lea dx, m_msg
+    390	01C5  E8 FE38			 call output_text
+    391
+    392	01C8  E8 FE7B			 call input_number
+    393	01CB  A3 0000r			 mov m,	ax
+    394
+    395	01CE  B2 0D			 mov dl, CR
+    396	01D0  E8 FE32			 call output_character
+    397	01D3  B2 0A			 mov dl, LF
+    398	01D5  E8 FE2D			 call output_character
+    399
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 8
+pr6_2.ASM
+
+
+
+    400	01D8  BA 021Fr			 lea dx, n_msg
+    401	01DB  E8 FE22			 call output_text
+    402
+    403	01DE  E8 FE65			 call input_number
+    404	01E1  A3 0002r			 mov n,	ax
+    405
+    406	01E4  B2 0D			 mov dl, CR
+    407	01E6  E8 FE1C			 call output_character
+    408	01E9  B2 0A			 mov dl, LF
+    409	01EB  E8 FE17			 call output_character
+    410
+    411	01EE  BA 0233r			 lea dx, matrix_msg
+    412	01F1  E8 FE0C			 call output_text
+    413
+    414	01F4  E8 FEB0			 call input_matrix
+    415
+    416	01F7  B2 0A			 mov dl, 0Ah
+    417	01F9  E8 FE09			 call output_character
+    418
+    419	01FC  C3			 ret
+    420
+    421				     ; ---------------------------------------------------------
+    422				     ; Input point
+    423				     ; ---------------------------------------------------------
+    424	01FD			     start:
+    425	01FD  E8 001D			 call init
+    426
+    427	0200  E8 FFBF			 call input_data
+    428
+    429	0203  E8 FF51			 call sort_by_max_element
+    430
+    431	0206  BA 0255r			 lea dx, output_start_msg
+    432	0209  E8 FDF4			 call output_text
+    433
+    434	020C  E8 FEEB			 call output_matrix
+    435
+    436	020F  BA 0269r			 lea dx, output_end_msg
+    437	0212  E8 FDEB			 call output_text
+    438
+    439	0215			     _exit:
+    440	0215  B2 0A			 mov dl, LF
+    441	0217  E8 FDEB			 call output_character
+    442	021A  E8 0006			 call exit
+    443
+    444				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    445				     ; Initialization and exit functions
+    446				     ; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    447	021D			     init:
+    448	021D  B8 0000s			 mov ax, dseg
+    449	0220  8E D8			 mov ds, ax
+    450	0222  C3			 ret
+    451
+    452	0223			     exit:
+    453	0223  B4 4C			 mov ah, 4Ch
+    454	0225  CD 21			 int 21h
+    455	0227  C3			 ret
+    456
+Turbo Assembler	 Version 2.51	     12/23/19 15:09:12	    Page 9
+pr6_2.ASM
+
+
+
+    457	0228			     cseg ends
+    458					 end start
+
